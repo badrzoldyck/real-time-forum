@@ -2,14 +2,13 @@ const chatdiv = `<h2>Chat App</h2>
     <div id="chat"></div>
     <input type="text" id="messageInput" placeholder="Type a message">
     <button id="sendmsg">Send</button>
-    <button id="load">Load More</button>
     <div><h3>Online Users</h3>
     <ul id="user-list"></ul></div>`
 
     const alldiv = document.getElementById("chatapp")
     alldiv.innerHTML = chatdiv
 
-    const load = document.getElementById("load")
+    const load = document.getElementById("chat")
 
 
 let socket;
@@ -21,7 +20,7 @@ let messages = [];
 document.getElementById("sendmsg").addEventListener("click",() =>{
     sendMessage()
 })
-load.addEventListener("click",() =>{
+load.addEventListener("scroll",() =>{
     num += 10
     loadMessages()
 })
@@ -44,7 +43,7 @@ export function connect(id) {
             updateUserList(data.users);
         } else {
             loadMessages()
-            //displayMessage(data, data.sender === userId ? "sent" : "received");
+           
             document.getElementById(data.sender).textContent = data.sender + "    New Message"
         }
     };
@@ -85,12 +84,10 @@ function loadMessages() {
         .then(res => res.json())
         .then(data => {
             if (data == null){
-                load.style.display = "none"
                 return
             }
-            data.reverse()
-            messages.unshift(...data)
-            console.log(messages);
+            messages.push(...data)
+            messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
             
             
             let chat = document.getElementById("chat");

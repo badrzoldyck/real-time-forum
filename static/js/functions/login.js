@@ -62,6 +62,7 @@ function loginPage(){
     const DivForum = document.getElementById("loginToggle");
     const CloseForum = document.getElementById("img_close");
     const chat = document.getElementById("chatapp");
+    document.getElementById("container1").style.display = "none"
     
     logoutButton.style.display = "none"
     chat.style.display = "none"

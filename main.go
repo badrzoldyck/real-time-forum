@@ -6,13 +6,12 @@ import (
 	"rtf/database"
 	"rtf/server"
 	"net/http"
-	
 )
 
 
 
 func main(){
-	port := "8828"
+	port := "8826"
 	if err := database.CreateDatabase(); err != nil {
 		log.Fatal("Problem in Create database")
 	}

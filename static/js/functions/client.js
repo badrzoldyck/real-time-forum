@@ -27,6 +27,11 @@ const creatPost = `
   <label for="categoryFilter">Filter by Category:</label>
   <select id="categoryFilter">
     <option value="all">All Posts</option>
+    <option value="Technology">Technology Posts</option>
+    <option value="Lifestyle">Lifestyle Posts</option>
+    <option value="Travel">Travel Posts</option>
+    <option value="Food">Food Posts</option>
+    <option value="Other">Other Posts</option>
   </select>
 </div>
 
@@ -41,8 +46,7 @@ const creatPost = `
 
 <div id="allPosts"></div>
 <button id="loadMoreBtn">Load More</button>
-`;
-
+`
 const loginBtn = document.getElementById("loginToggle");
 const logoutButton = document.getElementById("logoutButton");
 const container = document.getElementById("container");
@@ -62,6 +66,29 @@ function clientPage() {
   chat.style.display = "block";
   document.getElementById("container1").style.display = "block";
   document.getElementById("container1").innerHTML = creatPost;
+
+
+  document.getElementById("categoryFilter").addEventListener("change", function () {
+    selectedCategory = this.value === "all" ? null : this.value; 
+    selectedOwnership = this.value === null;
+    const categoy = document.getElementById("ownershipFilter")
+    categoy.value = "all";
+    postsPerPage = 5;
+    loadPosts(); 
+    console.log("selectedCategory",selectedCategory);
+  
+  });
+  
+  document.getElementById("ownershipFilter").addEventListener("change", function () {
+    selectedOwnership = this.value === "all" ? null : this.value; 
+    selectedCategory = this.value === null;
+    const categoy = document.getElementById("categoryFilter")
+    categoy.value = "all";
+    postsPerPage = 5;
+    loadPosts(); 
+    console.log("selectedOwnership",selectedOwnership);
+    
+  });
 
   loadPosts();
   initForm();
@@ -159,6 +186,53 @@ function loadMorePosts() {
   loadMoreBtn.style.display = currentIndex >= allPosts.length ? "none" : "block";
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Create post elements
 function createPostElement(postData) {
   const postDiv = document.createElement("div");
@@ -167,17 +241,198 @@ function createPostElement(postData) {
   const commentCount = Array.isArray(postData.Comments) ? postData.Comments.length : 0;
 
   postDiv.innerHTML = `
-      <h2 class="post-title">${postData.Title}</h2>
-      <div class="post-categories">${postData.Categories.map(cat => `<span class="category-tag">${cat}</span>`).join("")}</div>
-      <div class="post-content">${postData.Content}</div>
-      <div class="stats">${postData.LikeCount} likes · ${postData.DislikeCount} dislikes· Comments (${commentCount})</div>
+  <h2 class="post-title">${postData.Title}</h2>
+  <div class="post-categories">
+    ${postData.Categories.map(
+      (cat) => `<span class="category-tag">${cat}</span>`
+    ).join("")}
+  </div>
+  <div class="post-content">${postData.Content}</div>
+  <div class="stats">${postData.LikeCount} likes · ${
+postData.DislikeCount
+} dislikes· Comments (${commentCount})</div>
+  <div class="interaction-bar">
+    <button id="post-like-btn-${
+      postData.PostID
+    }" class="interaction-button ${postData.IsLike === 1 ? "active" : ""}"
+      onclick="submitLikeDislike({ postID: '${
+        postData.PostID
+      }', isLike: true })">👍 Like</button>
+    <button id="post-dislike-btn-${
+      postData.PostID
+    }" class="interaction-button ${postData.IsLike === 2 ? "active" : ""}"
+      onclick="submitLikeDislike({ postID: '${
+        postData.PostID
+      }', isLike: false })">👎 Dislike</button>
+    <button class="interaction-button comment-button" onclick="toggleComments('${
+      postData.PostID
+    }')">
+      💬 Comments (${commentCount})
+    </button>
+  </div>
+  <div class="comments-section" id="comments-${
+    postData.PostID
+  }" style="display: none;">
+    <form class="comment-form"  style="display : block" id="commentForm-${
+      postData.PostID
+    }" onsubmit="submitComment(event, ${postData.PostID})">
+      <input type="hidden" name="post_id" value="${postData.PostID}">
+      <textarea placeholder="Write a comment..." name="comment" required></textarea>
+      <button type="submit">Add Comment</button>
+    </form>
+    ${
+      commentCount > 0
+        ? postData.Comments.map(
+            (comment) => `
+    <div class="comment">
+      <div class="comment-content">${comment.Content}</div>
+      <div id="comment-like-btn-${
+                comment.CommentID
+              }" class="stats">${comment.LikeCount} likes · ${
+              comment.DislikeCount
+            } dislikes</div>
       <div class="interaction-bar">
-        <button id="post-like-btn-${postData.PostID}" class="interaction-button ${postData.IsLike === 1 ? "active" : ""}" onclick="submitLikeDislike({ postID: '${postData.PostID}', isLike: true })">👍 Like</button>
-        <button id="post-dislike-btn-${postData.PostID}" class="interaction-button ${postData.IsLike === 2 ? "active" : ""}" onclick="submitLikeDislike({ postID: '${postData.PostID}', isLike: false })">👎 Dislike</button>
-      </div>
-    `;
+              <button id="comment-like-btn-${
+                comment.CommentID
+              }" class="interaction-button ${
+              comment.IsLike === 1 ? "active" : ""
+            }"
+      onclick="submitLikeDislike({ commentID: '${
+        comment.CommentID
+      }', isLike: true })">👍 Like</button>
+    <button id="comment-dislike-btn-${
+      comment.CommentID
+    }" class="interaction-button ${comment.IsLike === 2 ? "active" : ""}"
+      onclick="submitLikeDislike({ commentID: '${
+        comment.CommentID
+      }', isLike: false })">👎 Dislike</button>
+            </div>
+    </div>
+  `
+          ).join("")
+        : "<p>No comments yet.</p>"
+    }
+  </div>
+`;
+
   return postDiv;
 }
 
+function submitLikeDislike({ postID = null, commentID = null, isLike }) {
+  console.log("likeBtn ID:", `like-btn-${commentID || postID}`);
 
-export { clientPage, loadPosts };
+  if (!postID && !commentID) {
+    console.error("Either postID or commentID is required");
+    return;
+  }
+
+  const likeBtnID = postID
+    ? `post-like-btn-${postID}`
+    : `comment-like-btn-${commentID}`;
+  const dislikeBtnID = postID
+    ? `post-dislike-btn-${postID}`
+    : `comment-dislike-btn-${commentID}`;
+  const likeBtn = document.getElementById(likeBtnID);
+  const dislikeBtn = document.getElementById(dislikeBtnID);
+
+  // Disable buttons to prevent rapid clicks
+  likeBtn.disabled = true;
+  dislikeBtn.disabled = true;
+
+  try {
+    const formData = new URLSearchParams();
+    if (postID) formData.append("post_id", postID);
+    if (commentID) formData.append("comment_id", commentID);
+
+    if (isLike === true && likeBtn.classList.contains("active")) {
+      isLike = null;
+    } else if (isLike === false && dislikeBtn.classList.contains("active")) {
+      isLike = null;
+    }
+
+    formData.append("is_like", isLike === null ? "" : isLike);
+
+    fetch("/interact", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData.toString(),
+    })
+      .then(response => response.json())
+      .then(({ updatedIsLike }) => {
+        toggleButtons(likeBtnID, dislikeBtnID, updatedIsLike);
+        console.log(updatedIsLike);
+        
+        loadPosts();
+        //toggleComments(postID)
+       
+
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("Something went wrong. Please try again.");
+      })
+      .finally(() => {
+        likeBtn.disabled = false;
+        dislikeBtn.disabled = false;
+      });
+
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+// Attach to global scope
+window.submitLikeDislike = submitLikeDislike;
+
+
+function toggleButtons(likeBtnID, dislikeBtnID, updatedIsLike) {
+  const likeBtn = document.getElementById(likeBtnID);
+  const dislikeBtn = document.getElementById(dislikeBtnID);
+  if (updatedIsLike === true) {
+    likeBtn.classList.add("active");
+    dislikeBtn.classList.remove("active");
+  } else if (updatedIsLike === false) {
+    dislikeBtn.classList.add("active");
+    likeBtn.classList.remove("active");
+  } else {
+    likeBtn.classList.remove("active");
+    dislikeBtn.classList.remove("active");
+  }
+}
+
+function toggleComments(postID) {
+  const commentsSection = document.getElementById(`comments-${postID}`);
+  commentsSection.style.display =
+    commentsSection.style.display === "none" ? "block" : "none";
+}
+
+// Function to submit a comment
+async function submitComment(event, postID) {
+  event.preventDefault();
+
+  const form = document.getElementById(`commentForm-${postID}`);
+  const formData = new FormData(form);
+  formData.append("post_id", postID);
+
+  try {
+    const response = await fetch("/comment_submit", {
+      method: "POST",
+      body: formData,
+    });
+    const result = await response.text();
+    alert("Comment submitted successfully!");
+    form.reset();
+    loadPosts();
+  } catch (error) {
+    console.error("Error submitting comment:", error);
+    alert("Failed to submit comment");
+  }
+}
+
+window.toggleComments = toggleComments;
+
+window.submitComment = submitComment;
+
+
+// Export function if using modules
+export { clientPage, loadPosts,};
