@@ -42,8 +42,8 @@ export function connect(id) {
         if (data.type === "userList") {
             updateUserList(data.users);
         } else {
-            loadMessages()
-           
+            //loadMessages()
+            displayMessage(data, data.sender === userId ? "sent" : "received");
             document.getElementById(data.sender).textContent = data.sender + "    New Message"
         }
     };
