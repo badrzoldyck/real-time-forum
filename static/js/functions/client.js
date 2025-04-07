@@ -58,12 +58,14 @@ let selectedCategory = null;
 let selectedOwnership = null;
 let allPosts = [];
 
+
 function clientPage() {
   container.innerHTML = "";
   container.style.display = "none"
   loginBtn.style.display = "none";
   logoutButton.style.display = "block";
   chat.style.display = "block";
+  document.getElementById("chat").innerHTML = "";
   document.getElementById("container1").style.display = "block";
   document.getElementById("container1").innerHTML = creatPost;
 
@@ -119,7 +121,7 @@ function initForm() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "An unknown error occurred.");
+        alert(data.error || "An unknown error occurred.");
       }
 
       alert("Post submitted successfully!");
@@ -185,52 +187,6 @@ function loadMorePosts() {
   currentIndex += postsPerPage;
   loadMoreBtn.style.display = currentIndex >= allPosts.length ? "none" : "block";
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // Create post elements

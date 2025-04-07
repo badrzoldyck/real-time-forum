@@ -28,9 +28,8 @@ type Message struct {
 }
 
 var (
-	clients   = make(map[string]*websocket.Conn) // Online users
+	clients   = make(map[string][]*websocket.Conn)
 	clientsMu sync.Mutex
-	//db        *sql.DB
 )
 
 // Handle WebSocket connection
@@ -45,10 +44,10 @@ func HandleConnection(w http.ResponseWriter, r *http.Request) {
 
 	// Add user to online list
 	clientsMu.Lock()
-	clients[userID] = conn
+	clients[userID] = append(clients[userID], conn)
 	clientsMu.Unlock()
 
-	broadcastUserList() // Notify all clients of new user
+	BroadcastUserList() // Notify all clients of new user
 
 	//fmt.Println("User connected:", userID)
 
@@ -56,7 +55,7 @@ func HandleConnection(w http.ResponseWriter, r *http.Request) {
 		var msg Message
 		err := conn.ReadJSON(&msg)
 		if err != nil {
-			fmt.Println("Error reading message:", err)
+			//fmt.Println("Error reading message:", err)
 			break
 		}
 
@@ -69,9 +68,15 @@ func HandleConnection(w http.ResponseWriter, r *http.Request) {
 
 		// Send message to receiver if online
 		clientsMu.Lock()
-		if receiverConn, ok := clients[msg.Receiver]; ok {
-			receiverConn.WriteJSON(msg)
-		}
+		if receiverConns, ok := clients[msg.Receiver]; ok {
+			for _, conn := range receiverConns {
+				err := conn.WriteJSON(msg)
+				if err != nil {
+					fmt.Println("Error sending to receiver:", err)
+					// Optionally handle connection cleanup here
+				}
+			}
+		}		
 		clientsMu.Unlock()
 	}
 
@@ -80,7 +85,7 @@ func HandleConnection(w http.ResponseWriter, r *http.Request) {
 	delete(clients, userID)
 	clientsMu.Unlock()
 
-	broadcastUserList() // Notify all users of updated list
+	BroadcastUserList() // Notify all users of updated list
 }
 
 // Fetch last 10 messages
@@ -114,7 +119,7 @@ func GetMessages(w http.ResponseWriter, r *http.Request) {
 
 
 
-func broadcastUserList() {
+func BroadcastUserList() {
 	clientsMu.Lock()
 	defer clientsMu.Unlock()
 
@@ -132,6 +137,8 @@ func broadcastUserList() {
 
 	// Send to all connected clients
 	for _, conn := range clients {
-		conn.WriteMessage(websocket.TextMessage, usersJSON)
+		for _, conn1 := range conn {
+			conn1.WriteMessage(websocket.TextMessage, usersJSON)
+		}
 	}
 }

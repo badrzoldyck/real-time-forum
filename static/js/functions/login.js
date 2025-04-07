@@ -1,5 +1,5 @@
 import { clientPage,loadPosts } from "./client.js";
-import { connect } from "./wb.js";
+import { connect , fetchUserName} from "./wb.js";
 
 const divLogin = `<img style="margin:9px 0 0 2%;display: none" id="img_close" class="img_close" src="/badr/img/icon_close.png" alt="ssssssssssss">
      <div class="form-container sign-up">
@@ -42,14 +42,14 @@ const divLogin = `<img style="margin:9px 0 0 2%;display: none" id="img_close" cl
          <div class="toggle-panel toggle-left">
            <h1>Welcome Back!</h1>
            <p>Enter your personal details to use all of site features</p>
-           <button class="hidden" id="login">Sign In</button>
+           <button id="login">Sign In</button>
          </div>
          <div class="toggle-panel toggle-right">
            <h1>Hello, Friend!</h1>
            <p>
              Register with your personal details to use all of site features
            </p>
-           <button class="hidden" id="register">Sign Up</button>
+           <button id="register">Sign Up</button>
          </div>
        </div>
      </div>`
@@ -140,9 +140,6 @@ function loginHundler(){
       document.getElementById("loginform").addEventListener("click",async function (){
         const inputName = document.getElementById("loginInputName").value;
         const inputPassword = document.getElementById("loginInputPassword").value;
-       // const loginBtn = document.getElementById("loginToggle")
-        //const logoutButton = document.getElementById("logoutButton");
-       // const container = document.getElementById("container");
       
         const formData = new URLSearchParams();
         formData.append("email",inputName)
@@ -163,6 +160,7 @@ function loginHundler(){
           clientPage()
           loadPosts()
           connect(Json.username)
+          fetchUserName(Json.username)
         }   
       })
 }

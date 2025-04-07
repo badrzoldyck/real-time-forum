@@ -11,7 +11,7 @@ import (
 
 
 func main(){
-	port := "8826"
+	port := "8102"
 	if err := database.CreateDatabase(); err != nil {
 		log.Fatal("Problem in Create database")
 	}
@@ -36,6 +36,7 @@ func main(){
 	http.HandleFunc("/logout", server.LogoutHandler)
 
 	http.HandleFunc("/ws", server.HandleConnection)
+	http.HandleFunc("/users", server.HandleUsers)
 	http.HandleFunc("/messages", server.GetMessages)
 
 

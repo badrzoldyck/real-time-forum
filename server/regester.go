@@ -22,7 +22,7 @@ func RegesterHandler(w http.ResponseWriter, r *http.Request) {
 	var response = make(map[string]string)
 
 	if r.Method != http.MethodPost {
-		response = map[string]string{"error": "Method not allowed"}
+		response = map[string]string{"message": "Method not allowed"}
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
