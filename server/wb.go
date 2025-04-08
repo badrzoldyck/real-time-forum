@@ -21,10 +21,11 @@ type User struct {
 
 // Message struct
 type Message struct {
-	Sender    string `json:"sender"`
-	Receiver  string `json:"receiver"`
-	Text      string `json:"text"`
-	Timestamp string `json:"timestamp"`
+	Type		string `json:"type"`
+	Sender		string `json:"sender"`
+	Receiver	string `json:"receiver"`
+	Text      	string `json:"text"`
+	Timestamp 	string `json:"timestamp"`
 }
 
 var (
@@ -59,25 +60,51 @@ func HandleConnection(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		// Save message to DB
-		_, err = database.Sql.Exec("INSERT INTO messages (sender, receiver, text) VALUES (?, ?, ?)", msg.Sender, msg.Receiver, msg.Text)
-		if err != nil {
-			fmt.Println("Error saving message:", err)
-			continue
-		}
+		
 
-		// Send message to receiver if online
-		clientsMu.Lock()
-		if receiverConns, ok := clients[msg.Receiver]; ok {
-			for _, conn := range receiverConns {
-				err := conn.WriteJSON(msg)
-				if err != nil {
-					fmt.Println("Error sending to receiver:", err)
-					// Optionally handle connection cleanup here
+		if msg.Type == "message" {
+			// Save message to DB
+			_, err = database.Sql.Exec("INSERT INTO messages (sender, receiver, text) VALUES (?, ?, ?)", msg.Sender, msg.Receiver, msg.Text)
+			if err != nil {
+				fmt.Println("Error saving message:", err)
+				continue
+			}
+
+			// Send message to receiver if online
+			clientsMu.Lock()
+			if receiverConns, ok := clients[msg.Receiver]; ok {
+				for _, conn := range receiverConns {
+					err := conn.WriteJSON(msg)
+					if err != nil {
+						fmt.Println("Error sending to receiver:", err)
+						// Optionally handle connection cleanup here
+					}
+				}
+			}		
+			clientsMu.Unlock()
+		}else if msg.Type == "typing"{
+			if msg.Text == "typing"{
+				// Prepare JSON response
+				usersJSON1, _ := json.Marshal(map[string]interface{}{
+					"type":    "typing",
+					"text":		"typing",
+					"users":   userID,
+				})
+				for _, conn := range clients[msg.Receiver] {
+					conn.WriteMessage(websocket.TextMessage, usersJSON1)
+				}
+			}else {
+				// Prepare JSON response
+				usersJSON1, _ := json.Marshal(map[string]interface{}{
+					"type":    "typing",
+					"text":		"noTyping",
+					"users":   userID,
+				})
+				for _, conn := range clients[msg.Receiver] {
+					conn.WriteMessage(websocket.TextMessage, usersJSON1)
 				}
 			}
-		}		
-		clientsMu.Unlock()
+		}
 	}
 
 	// Remove user on disconnect

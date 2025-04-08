@@ -17,8 +17,11 @@ let userId = "";
 let selectedUser = "";
 let usersOnline = [];
 let allUsers = [];
-let num = 0
+let num = 0;
+let istyping = false;
+let istyping1 = false;
 const load = document.getElementById("chat");
+const inputText = document.getElementById("messageInput")
 
 const close = document.getElementById("close");
 close.addEventListener("click",()=>{
@@ -44,6 +47,7 @@ load.addEventListener("scrollend", () => {
 
 
 export function connect(id) {
+    
     userId = id;
     socket = new WebSocket(`ws://${document.location.host}/ws?id=${userId}`);
 
@@ -61,6 +65,22 @@ export function connect(id) {
             await fetchUserName();
             usersOnline = data.users
             updateUserList()
+
+        }else if (data.type === "typing"){
+            
+            if (!istyping && data.text === "typing"){
+                document.getElementById(data.users).innerHTML += `<p id="typing" style="white-space: pre;"></p>`;
+                document.getElementById("typing").textContent = "  Typing...   "
+                console.log("hmdollah");
+                istyping , istyping1 = true;
+            }else if (istyping && data.text === "typing"){
+                document.getElementById("typing").textContent = "  Typing...   "
+                console.log("hmdollah");
+                istyping1 = true;
+            }else if (data.text === "noTyping"){
+                document.getElementById("typing").textContent = "";
+                istyping1 = false;
+            }      
         } else{
             await fetchUserName()
             if(data.sender == selectedUser){
@@ -89,6 +109,9 @@ function showAllUsers(){
         li.id = user
         userList.appendChild(li);
     });
+    if (istyping1 && document.querySelectorAll("#typing").length != 0){
+            document.getElementById("typing").textContent = "  Typing...   "
+    }
 }
 
 function updateUserList() {
@@ -102,6 +125,9 @@ function updateUserList() {
         li.className = "online";
         console.log(user + " is Connected");
     });
+    if (istyping1  && document.querySelectorAll("#typing").length != 0){
+        document.getElementById("typing").textContent = "  Typing...   "
+    }
 }
 
 function displayMessage(msg, type,isadd = false) {
@@ -145,20 +171,25 @@ function startChat(receiver) {
     document.getElementById("chat").innerHTML = "";
     load.style.display = "flex"
     close.style.display = "block"
-    document.getElementById(receiver).textContent = receiver
     selectedUser = receiver;
+    if (document.querySelectorAll("#typing").length != 0){
+        document.getElementById(receiver).textContent = receiver
+        document.getElementById(receiver).innerHTML += `<p id="typing" style="white-space: pre;"></p>`;
+        document.getElementById("typing").textContent = "  Typing...   "
+    }else{
+        document.getElementById(receiver).textContent = receiver
+    }
     loadMessages();
 }
 
 async function sendMessage() {
-    let text = document.getElementById("messageInput").value;
+    let text = inputText.value;
     if (!selectedUser || !text) return;
 
-    let msg = { sender: userId, receiver: selectedUser, text: text, timestamp: new Date().toISOString() };
+    let msg = {type: "message", sender: userId, receiver: selectedUser, text: text, timestamp: new Date().toISOString() };
     socket.send(JSON.stringify(msg));
     displayMessage(msg, "sent",true);
-
-    document.getElementById("messageInput").value = "";
+    inputText.value = "";
     await fetchUserName()
     updateUserList()
 }
@@ -187,5 +218,17 @@ document.getElementById("logoutButton").addEventListener("click",async () =>{
         socket.close();
         loginPage()
         loginHundler()
+    }
+})
+
+
+inputText.addEventListener("input", () =>{
+    
+    if (inputText.value.length != 0){
+        let msg = {type: "typing",receiver: selectedUser,text:"typing"};
+        socket.send(JSON.stringify(msg));
+    }else{
+        let msg = {type: "typing",receiver: selectedUser,text:"notyping"};
+        socket.send(JSON.stringify(msg));
     }
 })
