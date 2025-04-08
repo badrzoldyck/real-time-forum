@@ -71,11 +71,9 @@ export function connect(id) {
             if (!istyping && data.text === "typing"){
                 document.getElementById(data.users).innerHTML += `<p id="typing" style="white-space: pre;"></p>`;
                 document.getElementById("typing").textContent = "  Typing...   "
-                console.log("hmdollah");
                 istyping , istyping1 = true;
             }else if (istyping && data.text === "typing"){
                 document.getElementById("typing").textContent = "  Typing...   "
-                console.log("hmdollah");
                 istyping1 = true;
             }else if (data.text === "noTyping"){
                 document.getElementById("typing").textContent = "";
