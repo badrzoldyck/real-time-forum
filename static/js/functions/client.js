@@ -122,6 +122,7 @@ function initForm() {
       if (!response.ok) {
         const data = await response.json();
         alert(data.error || "An unknown error occurred.");
+        return
       }
 
       alert("Post submitted successfully!");
