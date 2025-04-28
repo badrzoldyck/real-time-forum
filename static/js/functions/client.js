@@ -52,11 +52,13 @@ const logoutButton = document.getElementById("logoutButton");
 const container = document.getElementById("container");
 const chat = document.getElementById("chatapp");
 
+
 let currentIndex = 0;
 let postsPerPage = 5;
 let selectedCategory = null;
 let selectedOwnership = null;
 let allPosts = [];
+
 
 
 function clientPage() {
@@ -155,6 +157,8 @@ async function loadPosts() {
     }
 
     allPosts = await response.json();
+    console.log(allPosts);
+    
 
     const allPostsContainer = document.getElementById("allPosts");
     if (!allPostsContainer) {
@@ -172,9 +176,11 @@ async function loadPosts() {
 }
 
 // Load more posts when scrolling
+
 function loadMorePosts() {
   const allPostsContainer = document.getElementById("allPosts");
   const loadMoreBtn = document.getElementById("loadMoreBtn");
+loadMoreBtn.addEventListener("click",fetchMore)
 
   for (let i = currentIndex; i < currentIndex + postsPerPage && i < allPosts.length; i++) {
     try {
@@ -389,6 +395,11 @@ async function submitComment(event, postID) {
 window.toggleComments = toggleComments;
 
 window.submitComment = submitComment;
+
+
+function fetchMore(){
+  loadMorePosts()
+}
 
 
 // Export function if using modules
