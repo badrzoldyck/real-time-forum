@@ -70,6 +70,7 @@ function clientPage() {
   document.getElementById("chat").innerHTML = "";
   document.getElementById("container1").style.display = "block";
   document.getElementById("container1").innerHTML = creatPost;
+  document.getElementById("homepage").style.display = "block"
 
 
   document.getElementById("categoryFilter").addEventListener("change", function () {

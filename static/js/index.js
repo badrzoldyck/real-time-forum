@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", async () =>{
         loginPage()
         loginHundler()
     }else {
+        document.getElementById("homepage").style.display = "block"
         await fetchUserName(reJson.username)
         connect(reJson.username)
         clientPage()
