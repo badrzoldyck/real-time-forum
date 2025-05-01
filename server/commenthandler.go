@@ -39,7 +39,6 @@ func ShowComments(postID int, w http.ResponseWriter, r *http.Request) ([]data.Co
 			continue
 		}
 		if sessionToken != "guest" {
-
 			var userID int
 			// var sessionToken string
 			err = database.Sql.QueryRow("SELECT id FROM users WHERE username = ? AND session_token = ?", UName, sessionToken).Scan(&userID)

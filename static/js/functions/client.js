@@ -19,7 +19,7 @@ const creatPost = `
       <label><input type="checkbox" name="category" value="Other" /> Other</label>
     </div>
   </div>
-  <button type="submit">Create Post</button>
+  <button class="submit" type="submit">Create Post</button>
 </form>
 
 <!-- Filters -->

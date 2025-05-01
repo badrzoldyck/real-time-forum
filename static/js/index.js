@@ -16,13 +16,3 @@ document.addEventListener("DOMContentLoaded", async () =>{
         loadPosts()
     }
 })
-
-
-
-
-
-
-
-
-
-

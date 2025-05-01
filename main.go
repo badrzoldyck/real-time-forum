@@ -11,7 +11,7 @@ import (
 
 
 func main(){
-	port := "8120"
+	port := "8122"
 	if err := database.CreateDatabase(); err != nil {
 		log.Fatal("Problem in Create database")
 	}

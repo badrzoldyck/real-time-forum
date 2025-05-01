@@ -18,7 +18,6 @@ func CheckSessionHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if loggedIn {
 		w.WriteHeader(http.StatusOK)
-		//fmt.Fprintln(w, `{"loggedIn": true}`)
 		fmt.Fprintf(w, `{"loggedIn": true,"username": "%s"}`, username)
 	} else {
 		w.WriteHeader(http.StatusOK)
