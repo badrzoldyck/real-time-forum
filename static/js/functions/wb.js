@@ -216,6 +216,7 @@ document.getElementById("logoutButton").addEventListener("click",async () =>{
         socket.close();
         loginPage()
         loginHundler()
+        document.getElementById("homepage").style.display = "none"
     }
 })
 
