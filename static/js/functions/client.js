@@ -52,7 +52,6 @@ const logoutButton = document.getElementById("logoutButton");
 const container = document.getElementById("container");
 const chat = document.getElementById("chatapp");
 
-
 let currentIndex = 0;
 let postsPerPage = 5;
 let selectedCategory = null;
@@ -79,9 +78,7 @@ function clientPage() {
     const categoy = document.getElementById("ownershipFilter")
     categoy.value = "all";
     postsPerPage = 5;
-    loadPosts(); 
-    console.log("selectedCategory",selectedCategory);
-  
+    loadPosts();   
   });
   
   document.getElementById("ownershipFilter").addEventListener("change", function () {
@@ -90,9 +87,7 @@ function clientPage() {
     const categoy = document.getElementById("categoryFilter")
     categoy.value = "all";
     postsPerPage = 5;
-    loadPosts(); 
-    console.log("selectedOwnership",selectedOwnership);
-    
+    loadPosts();    
   });
 
   loadPosts();
@@ -157,9 +152,7 @@ async function loadPosts() {
       throw new Error(errorData.error || "Failed to fetch data");
     }
 
-    allPosts = await response.json();
-    console.log(allPosts);
-    
+    allPosts = await response.json();    
 
     const allPostsContainer = document.getElementById("allPosts");
     if (!allPostsContainer) {
@@ -201,6 +194,7 @@ loadMoreBtn.addEventListener("click",fetchMore)
 function createPostElement(postData) {
   const postDiv = document.createElement("div");
   postDiv.classList.add("post");
+  postDiv.id = (postData.PostID)
 
   const commentCount = Array.isArray(postData.Comments) ? postData.Comments.length : 0;
 
@@ -228,7 +222,9 @@ postData.DislikeCount
       onclick="submitLikeDislike({ postID: '${
         postData.PostID
       }', isLike: false })">👎 Dislike</button>
-    <button class="interaction-button comment-button" onclick="toggleComments('${
+    <button class="interaction-button comment-button" id="post-cooments-btn-${
+      postData.PostID
+    }" onclick="toggleComments('${
       postData.PostID
     }')">
       💬 Comments (${commentCount})
@@ -242,7 +238,7 @@ postData.DislikeCount
     }" onsubmit="submitComment(event, ${postData.PostID})">
       <input type="hidden" name="post_id" value="${postData.PostID}">
       <textarea placeholder="Write a comment..." name="comment" required></textarea>
-      <button type="submit">Add Comment</button>
+      <button class="submit" type="submit">Add Comment</button>
     </form>
     ${
       commentCount > 0
@@ -258,15 +254,14 @@ postData.DislikeCount
       <div class="interaction-bar">
               <button id="comment-like-btn-${
                 comment.CommentID
-              }" class="interaction-button ${
-              comment.IsLike === 1 ? "active" : ""
-            }"
+              }+" class="interaction-button ${
+              comment.IsLike === 1 ? "active" : ""}"
       onclick="submitLikeDislike({ commentID: '${
         comment.CommentID
       }', isLike: true })">👍 Like</button>
     <button id="comment-dislike-btn-${
       comment.CommentID
-    }" class="interaction-button ${comment.IsLike === 2 ? "active" : ""}"
+    }+" class="interaction-button ${comment.IsLike === 2 ? "active" : ""}"
       onclick="submitLikeDislike({ commentID: '${
         comment.CommentID
       }', isLike: false })">👎 Dislike</button>
@@ -283,7 +278,6 @@ postData.DislikeCount
 }
 
 function submitLikeDislike({ postID = null, commentID = null, isLike }) {
-  console.log("likeBtn ID:", `like-btn-${commentID || postID}`);
 
   if (!postID && !commentID) {
     console.error("Either postID or commentID is required");
@@ -292,12 +286,13 @@ function submitLikeDislike({ postID = null, commentID = null, isLike }) {
 
   const likeBtnID = postID
     ? `post-like-btn-${postID}`
-    : `comment-like-btn-${commentID}`;
+    : `comment-like-btn-${commentID}+`;
   const dislikeBtnID = postID
     ? `post-dislike-btn-${postID}`
-    : `comment-dislike-btn-${commentID}`;
+    : `comment-dislike-btn-${commentID}+`;
   const likeBtn = document.getElementById(likeBtnID);
-  const dislikeBtn = document.getElementById(dislikeBtnID);
+  const dislikeBtn = document.getElementById(dislikeBtnID);  
+  
 
   // Disable buttons to prevent rapid clicks
   likeBtn.disabled = true;
@@ -323,11 +318,9 @@ function submitLikeDislike({ postID = null, commentID = null, isLike }) {
     })
       .then(response => response.json())
       .then(({ updatedIsLike }) => {
-        toggleButtons(likeBtnID, dislikeBtnID, updatedIsLike);
-        console.log(updatedIsLike);
-        
-        loadPosts();
-        //toggleComments(postID)
+        toggleButtons(likeBtnID, dislikeBtnID, updatedIsLike);        
+        //loadPosts();       
+        postID != null ? reaction(postID): addNewComment(null,commentID)
        
 
       })
@@ -383,14 +376,168 @@ async function submitComment(event, postID) {
       method: "POST",
       body: formData,
     });
-    const result = await response.text();
+    //const result = await response.text();
     alert("Comment submitted successfully!");
     form.reset();
-    loadPosts();
+    addNewComment(postID);
   } catch (error) {
     console.error("Error submitting comment:", error);
     alert("Failed to submit comment");
   }
+}
+
+async function showposts(postID) {
+  const response = await fetch(`/show_posts`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to fetch data");
+  }
+  const result = await response.json()
+  
+
+  return result.filter((x) => {
+    return x.PostID == postID
+  })[0];
+
+  
+}
+
+async function addNewComment(postID,commentID){
+  if (postID === null) {
+    const commentElement = document.getElementById(`comment-like-btn-${commentID}`);
+    postID = commentElement.closest(".post").id
+  }
+  
+
+  
+  let result = await showposts(postID)
+
+  
+  
+  const commentsSection = document.getElementById(`comments-${postID}`);
+  commentsSection.innerHTML = ""
+  const newCommentDiv = document.createElement("div");
+  newCommentDiv.className = "comment";
+  newCommentDiv.innerHTML = `<form class="comment-form"  style="display : block" id="commentForm-${
+      postID
+    }" onsubmit="submitComment(event, ${postID})">
+      <input type="hidden" name="post_id" value="${postID}">
+      <textarea placeholder="Write a comment..." name="comment" required></textarea>
+      <button class="submit" type="submit">Add Comment</button>
+    </form>${
+    result.Comments.map(
+            (comment) => `
+    <div class="comment">
+      <div class="comment-content">${comment.Content}</div>
+      <div id="comment-like-btn-${
+                comment.CommentID
+              }" class="stats">${comment.LikeCount} likes · ${
+              comment.DislikeCount
+            } dislikes</div>
+      <div class="interaction-bar">
+              <button id="comment-like-btn-${
+                comment.CommentID
+              }+" class="interaction-button ${
+              comment.IsLike === 1 ? "active" : ""}"
+      onclick="submitLikeDislike({ commentID: '${
+        comment.CommentID
+      }', isLike: true })">👍 Like</button>
+    <button id="comment-dislike-btn-${
+      comment.CommentID
+    }+" class="interaction-button ${comment.IsLike === 2 ? "active" : ""}"
+      onclick="submitLikeDislike({ commentID: '${
+        comment.CommentID
+      }', isLike: false })">👎 Dislike</button>
+            </div>
+    </div>
+  `
+          ).join("")}
+  `;
+
+  commentsSection.appendChild(newCommentDiv);
+  document.getElementById(`post-cooments-btn-${postID}`).innerHTML = `💬 Comments (${result.length})`
+}
+
+async function reaction(postID){
+  const postDiv = document.getElementById(postID)
+  
+  let postData = await showposts(postID)
+  const commentCount = Array.isArray(postData.Comments) ? postData.Comments.length : 0;
+  
+
+  postDiv.innerHTML = `<h2 class="post-title">${postData.Title}</h2>
+  <div class="post-categories">
+    ${postData.Categories.map(
+      (cat) => `<span class="category-tag">${cat}</span>`
+    ).join("")}
+  </div>
+  <div class="post-content">${postData.Content}</div>
+  <div class="stats">${postData.LikeCount} likes · ${
+postData.DislikeCount
+} dislikes· Comments (${commentCount})</div>
+  <div class="interaction-bar">
+    <button id="post-like-btn-${
+      postData.PostID
+    }" class="interaction-button ${postData.IsLike === 1 ? "active" : ""}"
+      onclick="submitLikeDislike({ postID: '${
+        postData.PostID
+      }', isLike: true })">👍 Like</button>
+    <button id="post-dislike-btn-${
+      postData.PostID
+    }" class="interaction-button ${postData.IsLike === 2 ? "active" : ""}"
+      onclick="submitLikeDislike({ postID: '${
+        postData.PostID
+      }', isLike: false })">👎 Dislike</button>
+    <button class="interaction-button comment-button" id="post-cooments-btn-${
+      postData.PostID
+    }" onclick="toggleComments('${
+      postData.PostID
+    }')">
+      💬 Comments (${commentCount})
+    </button>
+  </div>
+  <div class="comments-section" id="comments-${
+    postData.PostID
+  }" style="display: none;">
+    <form class="comment-form"  style="display : block" id="commentForm-${
+      postData.PostID
+    }" onsubmit="submitComment(event, ${postData.PostID})">
+      <input type="hidden" name="post_id" value="${postData.PostID}">
+      <textarea placeholder="Write a comment..." name="comment" required></textarea>
+      <button class="submit" type="submit">Add Comment</button>
+    </form>
+    ${
+      commentCount > 0
+        ? postData.Comments.map(
+            (comment) => `
+    <div class="comment">
+      <div class="comment-content">${comment.Content}</div>
+      <div id="comment-like-btn-${
+                comment.CommentID
+              }" class="stats">${comment.LikeCount} likes · ${
+              comment.DislikeCount
+            } dislikes</div>
+      <div class="interaction-bar">
+              <button id="comment-like-btn-${
+                comment.CommentID
+              }+" class="interaction-button ${
+              comment.IsLike === 1 ? "active" : ""}"
+      onclick="submitLikeDislike({ commentID: '${
+        comment.CommentID
+      }', isLike: true })">👍 Like</button>
+    <button id="comment-dislike-btn-${
+      comment.CommentID
+    }+" class="interaction-button ${comment.IsLike === 2 ? "active" : ""}"
+      onclick="submitLikeDislike({ commentID: '${
+        comment.CommentID
+      }', isLike: false })">👎 Dislike</button>
+            </div>
+    </div>
+  `
+          ).join("")
+        : "<p>No comments yet.</p>"
+    }
+  </div>`
 }
 
 window.toggleComments = toggleComments;

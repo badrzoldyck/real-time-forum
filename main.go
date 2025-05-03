@@ -11,7 +11,7 @@ import (
 
 
 func main(){
-	port := "8123"
+	port := "8135"
 	if err := database.CreateDatabase(); err != nil {
 		log.Fatal("Problem in Create database")
 	}
@@ -29,8 +29,8 @@ func main(){
 	http.HandleFunc("/interact", server.HandleInteract)
 	
 	// authentication handler
-	http.HandleFunc("/",server.HomeHandler)
 	http.HandleFunc("/regester",server.RegesterHandler)
+	http.HandleFunc("/",server.HomeHandler)
 	http.HandleFunc("/login",server.LoginHandler)
 	http.HandleFunc("/check-session", server.CheckSessionHandler)
 	http.HandleFunc("/logout", server.LogoutHandler)

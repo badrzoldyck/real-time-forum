@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var posts []data.PostWithLike	
+var posts []data.PostWithLike
 
 func ShowPosts(w http.ResponseWriter, r *http.Request) {
 	response := make(map[string]interface{})
